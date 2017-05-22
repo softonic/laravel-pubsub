@@ -117,7 +117,8 @@ class PubSubConnectionFactory
         $clientIdentifier = array_get($config, 'client_identifier');
         $autoCreateTopics = array_get($config, 'auto_create_topics', true);
         $autoCreateSubscriptions = array_get($config, 'auto_create_subscriptions', true);
+        $maxMessages = array_get($config, 'max_messages', 5);
 
-        return new GoogleCloudPubSubAdapter($client, $clientIdentifier, $autoCreateTopics, $autoCreateSubscriptions);
+        return new GoogleCloudPubSubAdapter($client, $clientIdentifier, $autoCreateTopics, $autoCreateSubscriptions, $maxMessages);
     }
 }
