@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Superbalist\PubSub\Adapters\DevNullPubSubAdapter;
 use Superbalist\PubSub\Adapters\LocalPubSubAdapter;
 use Superbalist\PubSub\GoogleCloud\GoogleCloudPubSubAdapter;
+use Superbalist\PubSub\HTTP\HTTPPubSubAdapter;
 use Superbalist\PubSub\Kafka\KafkaPubSubAdapter;
 use Superbalist\PubSub\PubSubAdapterInterface;
 use Superbalist\PubSub\Redis\RedisPubSubAdapter;
@@ -47,6 +48,8 @@ class PubSubConnectionFactory
                 return $this->makeKafkaAdapter($config);
             case 'gcloud':
                 return $this->makeGoogleCloudAdapter($config);
+            case 'http':
+                return $this->makeHTTPAdapter($config);
         }
 
         throw new InvalidArgumentException(sprintf('The driver [%s] is not supported.', $driver));
@@ -112,6 +115,10 @@ class PubSubConnectionFactory
             'projectId' => $config['project_id'],
             'keyFilePath' => $config['key_file'],
         ];
+        if (isset($config['auth_cache'])) {
+            $clientConfig['authCache'] = $this->container->make($config['auth_cache']);
+        }
+
         $client = $this->container->makeWith('pubsub.gcloud.pub_sub_client', ['config' => $clientConfig]);
 
         $clientIdentifier = array_get($config, 'client_identifier');
@@ -120,5 +127,22 @@ class PubSubConnectionFactory
         $maxMessages = array_get($config, 'max_messages', 5);
 
         return new GoogleCloudPubSubAdapter($client, $clientIdentifier, $autoCreateTopics, $autoCreateSubscriptions, $maxMessages);
+    }
+
+    /**
+     * Factory a HTTPPubSubAdapter.
+     *
+     * @param array $config
+     *
+     * @return HTTPPubSubAdapter
+     */
+    protected function makeHTTPAdapter(array $config)
+    {
+        $client = $this->container->make('pubsub.http.client');
+        $adapter = $this->make(
+            $config['subscribe_connection_config']['driver'],
+            $config['subscribe_connection_config']
+        );
+        return new HTTPPubSubAdapter($client, $config['uri'], $adapter);
     }
 }

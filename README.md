@@ -13,12 +13,17 @@ This package is a wrapper bridging [php-pubsub](https://github.com/Superbalist/p
 
 For **Laravel 4** support, use the package https://github.com/Superbalist/laravel4-pubsub
 
+Please note that **Laravel 5.3** is only supported up until version 2.0.2.
+
+2.0.3+ supports **Laravel 5.4 and up** moving forward.
+
 The following adapters are supported:
 * Local
 * /dev/null
 * Redis
 * Kafka (see separate installation instructions below)
 * Google Cloud
+* HTTP
 
 ## Installation
 
@@ -54,6 +59,9 @@ KAFKA_BROKERS=localhost
 
 GOOGLE_CLOUD_PROJECT_ID=your-project-id-here
 GOOGLE_CLOUD_KEY_FILE=path/to/your/gcloud-key.json
+
+HTTP_PUBSUB_URI=null
+HTTP_PUBSUB_SUBSCRIBE_CONNECTION=redis
 ```
 
 To customize the configuration file, publish the package configuration using Artisan.

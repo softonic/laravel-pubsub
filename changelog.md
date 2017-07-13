@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.5 - 2017-07-03
+
+* Add support for using a custom auth cache with the Google Cloud adapter
+
+## 2.0.4 - 2017-05-24
+
+* Add support for HTTP adapter
+
 ## 2.0.3 - 2017-05-19
 
 * Bump illuminate/support & illuminate/console to ^5.4

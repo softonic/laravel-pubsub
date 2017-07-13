@@ -8,7 +8,7 @@ return [
     |
     | The default pub-sub connection to use.
     |
-    | Supported: "/dev/null", "local", "redis", "kafka", "gcloud"
+    | Supported: "/dev/null", "local", "redis", "kafka", "gcloud", "http"
     |
     */
 
@@ -59,6 +59,13 @@ return [
             'client_identifier' => null,
             'auto_create_topics' => true,
             'auto_create_subscriptions' => true,
+            'auth_cache' => null, // eg: \Google\Auth\Cache\MemoryCacheItemPool::class,
+        ],
+
+        'http' => [
+            'driver' => 'http',
+            'uri' => env('HTTP_PUBSUB_URI'),
+            'subscribe_connection' => env('HTTP_PUBSUB_SUBSCRIBE_CONNECTION', 'redis'),
         ],
 
     ],

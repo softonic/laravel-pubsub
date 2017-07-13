@@ -3,15 +3,19 @@
 namespace Tests;
 
 use Google\Cloud\PubSub\PubSubClient as GoogleCloudPubSubClient;
+use GuzzleHttp\Client;
 use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 use Mockery;
 use Predis\Client as RedisClient;
+use Psr\Cache\CacheItemPoolInterface;
 use Superbalist\LaravelPubSub\PubSubConnectionFactory;
 use Superbalist\PubSub\Adapters\DevNullPubSubAdapter;
 use Superbalist\PubSub\Adapters\LocalPubSubAdapter;
 use Superbalist\PubSub\GoogleCloud\GoogleCloudPubSubAdapter;
+use Superbalist\PubSub\HTTP\HTTPPubSubAdapter;
 use Superbalist\PubSub\Kafka\KafkaPubSubAdapter;
+use Superbalist\PubSub\PubSubAdapterInterface;
 use Superbalist\PubSub\Redis\RedisPubSubAdapter;
 
 class PubSubConnectionFactoryTest extends TestCase
@@ -174,6 +178,60 @@ class PubSubConnectionFactoryTest extends TestCase
         $this->assertEquals('blah', $adapter->getClientIdentifier());
         $this->assertFalse($adapter->areTopicsAutoCreated());
         $this->assertTrue($adapter->areSubscriptionsAutoCreated());
+    }
+
+    public function testMakeGoogleCloudAdapterWithAuthCache()
+    {
+        $cacheImplementation = Mockery::mock(CacheItemPoolInterface::class);
+
+        $container = Mockery::mock(Container::class);
+        $container->shouldReceive('make')
+            ->with('MyPSR6CacheImplementation::class')
+            ->andReturn($cacheImplementation);
+        $container->shouldReceive('makeWith')
+            ->withArgs([
+                'pubsub.gcloud.pub_sub_client',
+                [
+                    'config' => [
+                        'projectId' => 12345,
+                        'keyFilePath' => 'my_key_file.json',
+                        'authCache' => $cacheImplementation,
+                    ],
+                ],
+            ])
+            ->andReturn(Mockery::mock(GoogleCloudPubSubClient::class));
+
+        $factory = new PubSubConnectionFactory($container);
+
+        $config = [
+            'project_id' => '12345',
+            'key_file' => 'my_key_file.json',
+            'auth_cache' => 'MyPSR6CacheImplementation::class',
+        ];
+
+        $adapter = $factory->make('gcloud', $config);
+        $this->assertInstanceOf(GoogleCloudPubSubAdapter::class, $adapter);
+    }
+
+    public function testMakeHTTPAdapter()
+    {
+        $container = Mockery::mock(Container::class);
+        $container->shouldReceive('make')
+            ->with('pubsub.http.client')
+            ->andReturn(Mockery::mock(Client::class));
+
+        $factory = new PubSubConnectionFactory($container);
+
+        $config = [
+            'uri' => 'http://127.0.0.1',
+            'subscribe_connection_config' => [
+                'driver' => '/dev/null',
+            ],
+        ];
+        $adapter = $factory->make('http', $config); /* @var HTTPPubSubAdapter $adapter */
+        $this->assertInstanceOf(HTTPPubSubAdapter::class, $adapter);
+        $this->assertEquals('http://127.0.0.1', $adapter->getUri());
+        $this->assertInstanceOf(PubSubAdapterInterface::class, $adapter->getAdapter());
     }
 
     public function testMakeInvalidAdapterThrowsInvalidArgumentException()
