@@ -19,7 +19,7 @@
     "illuminate/support": "^5.4",
     "superbalist/php-pubsub": "^1.0|^2.0",
     "superbalist/php-pubsub-redis": "^1.0|^2.0",
-    "superbalist/php-pubsub-google-cloud": "dev-softonic",
+    "superbalist/php-pubsub-google-cloud": "dev-softonic-no-ack-if-error",
     "illuminate/console": "^5.4",
     "superbalist/php-pubsub-http": "^1.0"
   },
